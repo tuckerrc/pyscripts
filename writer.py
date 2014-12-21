@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-import csv, os, glob
+import csv, os, glob, logging
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,6 +7,7 @@ import matplotlib.mlab as mlab
 import matplotlib.dates as mdates
 import matplotlib.cbook as cbook
 from pylab import *
+from matplotlib.dates import rrulewrapper, RRuleLocator
 
 # Get the filelocation	
 path = os.path.dirname(os.path.realpath(__file__))
@@ -17,7 +18,7 @@ def get_sam_types(file):
 	# @return array of all sample types and number of samples
 	# opens the file and counts the sample times to print
 	results = {}
-	with open(files, 'rb') as f:
+	with open(file, 'rb') as f:
 		reader = csv.reader(f, delimiter=",", quotechar = "\"")
 		for row in reader:
 			# checks if row has the target sample type
@@ -42,7 +43,7 @@ def showSamples(f, r):
 def get_rows(file, sT, samTypes): # f is file, sT is the sample type
 	# prepares row to be added to final csv file
 	finalrows = []
-	with open(files, 'rb') as f:
+	with open(file, 'rb') as f:
 		reader = csv.reader(f, delimiter=",", quotechar = "\"")
 		for row in reader:
 			if (row[31] == sT or row[31] == "CharacteristicName"):
@@ -72,11 +73,23 @@ def get_data(array):
 	return data
 
 def get_units(array):
-	unit = array[1][34]
-	return unit
+	unit_list = []
+	for u in array:
+		item = u[34]	
+		item = " ".join(item.split())
+		if item != 'ResultMeasure/MeasureUnitCode' and item not in unit_list and item != 'None':
+			unit_list.append(item)
+	units = str(unit_list)
+	units = units.replace("[","")
+	units = units.replace("]","")
+	units = units.replace("'","")
+	units = units.replace(" ,",",")
+	#print units
+	return units
 
 def get_type(array):
 	samType = array[1][31]
+	
 	return samType
 
 def plot(dates,samples,units,samType,graphdir):
@@ -98,12 +111,14 @@ def plot(dates,samples,units,samType,graphdir):
 		if s == '':
 			samples[c]  = '0.0'
 		c = c+1
-
+	rule = rrulewrapper(YEARLY)
+	loc = RRuleLocator(rule)
 	formatter = DateFormatter('%Y')
 
 	fig, ax = plt.subplots()
 
 	plt.plot_date(dates, samples)
+	ax.xaxis.set_major_locator(loc)
 	ax.xaxis.set_major_formatter(formatter)
 	labels = ax.get_xticklabels()
 	plt.title(samType)
@@ -114,33 +129,45 @@ def plot(dates,samples,units,samType,graphdir):
 
 #def get_
 # Take input from the user to get desired file
-fileName = '*'
-fileName = raw_input("Enter the file name '*' for all (without extension ie \"test\" not \"test.csv\"): ")
-print 'Please wait...'
-for files in glob.glob(fileName + ".csv"):
-	print 'Processing: ' + files
-	resultList = get_sam_types(files)
-	sampleTypes = showSamples(files,resultList)
-	csvdirName = files + ' csv'
-	graphdirName = files + ' graphs'	
-	if not os.path.exists(csvdirName):
-		os.makedirs(csvdirName)
-	if not os.path.exists(graphdirName):
-		os.makedirs(graphdirName)
+def main():
+	fileName = '*'
+	fileName = raw_input("Enter the file name '*' for all (without extension ie \"test\" not \"test.csv\"): ")
+	print 'Please wait...'
+	for f in glob.glob(fileName + ".csv"):
+		print 'Processing: ' + f
+		resultList = get_sam_types(f)
+		sampleTypes = showSamples(f,resultList)
+		csvdirName = f + ' csv'
+		graphdirName = f + ' graphs'	
+		if not os.path.exists(csvdirName):
+			os.makedirs(csvdirName)
+		if not os.path.exists(graphdirName):
+			os.makedirs(graphdirName)
+		
+		for l in sampleTypes:		
+			p = get_rows(f,l, sampleTypes)
+			sampleDates = get_dates(p)		
+			#print p
+			if (len(p[1:])):
+				if p[1][31].find('/') == -1 and p[1][31].find('[') == -1 :
+					csvWriter(p,p[1][31],csvdirName)
+					sampleDates = get_dates(p)
+					sampleData = get_data(p)
+					sampleUnits = get_units(p)
+					sampleT	= get_type(p)
+					print '	Sample Type: ' + sampleT
+					if sampleT != 'Turbidity severity':
+						plot(sampleDates,sampleData,sampleUnits,sampleT,graphdirName)
+						
+#logging.basicConfig(level=logging.DEBUG, filename='error.log')
+
+try:
+	main()		
+except:
+	logging.exception("")
+
+
 	
-	for l in sampleTypes:		
-		p = get_rows(files,l, sampleTypes)
-		sampleDates = get_dates(p)		
-		#print p
-		if (len(p[1:])):
-			csvWriter(p,p[1][31],csvdirName)
-			sampleDates = get_dates(p)
-			sampleData = get_data(p)
-			sampleUnits = get_units(p)
-			sampleT	= get_type(p)
-			plot(sampleDates,sampleData,sampleUnits,sampleT,graphdirName)
-
-
 #make the plots using plot_date()
 
 
