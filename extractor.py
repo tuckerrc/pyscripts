@@ -1,6 +1,29 @@
 #! /usr/bin/env python 
 import csv, os, glob
 
+def read_file(file, fN):
+	with open(file, 'rb') as q:
+		reader = csv.reader(q,delimiter=",",quotechar = "\"")
+		for row in reader:
+			if row[21] == 'MonitoringLocationIdentifier':
+				header = row
+			elif os.path.isfile(fN+'/'+row[21]+'.csv'):
+				with open(fN+"/"+ row[21] +'.csv','ab') as f:
+					writer = csv.writer(f)
+					writer.writerow(row)
+				f.close()
+			else:
+				with open(fN+"/"+ row[21] +'.csv','wb') as f:
+					print "Writing " + row[21] + '.csv'
+					writer = csv.writer(f)
+					writer.writerow(header)
+				f.close()
+				with open(fN+"/"+row[21]+'.csv','ab')as f:
+					writer = csv.writer(f)
+					writer.writerow(row)
+				f.close()
+	return
+
 def get_location_rows(file):
 	""" Returns list of all locations """
 	locations = []
@@ -9,7 +32,6 @@ def get_location_rows(file):
 		for row in reader:
 			if row[21] not in locations and row[21] != 'MonitoringLocationIdentifier':
 				locations.append(row[21])
-	print locations
 	f.close()
 	return locations
 	
@@ -37,18 +59,18 @@ def write_csv(rows, location,fN):
 		writer = csv.writer(f)
 		writer.writerows(rows)
 	f.close()
-		
 
-	
 path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(path)
-fileName = raw_input("Enter the file name (without extension ie \"test\" not \"test.csv\"): ")
+#fileName = raw_input("Enter the file name (without extension ie \"test\" not \"test.csv\"): ")
+fileName = "Result-2"
 for f in glob.glob(fileName + ".csv"):
 	if not os.path.exists(fileName):
 		os.makedirs(fileName)
 	print "Processing: " + f
-	loc = get_location_rows(f)
-	for l in loc:
-		loc_spec_list = create_csv_list(l,f)
-		write_csv(loc_spec_list, l, fileName)
+	read_file(f, fileName)
+#	loc = get_location_rows(f)
+#	for l in loc:
+#		loc_spec_list = create_csv_list(l,f)
+#		write_csv(loc_spec_list, l, fileName)
 	
