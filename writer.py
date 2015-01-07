@@ -1,4 +1,16 @@
 #! /usr/bin/env python
+
+""" 
+	Version 1.0
+	Changelog
+	  1.0
+	    Stop plotting data for sample types with less than 10 values
+	Changelog 
+	  0.9
+	    Added check for missing month/day/year values
+		if missing set to 1/1/1900
+	
+"""
 import csv, os, glob, logging
 import datetime
 import numpy as np
@@ -99,7 +111,24 @@ def plot(dates,samples,units,samType,graphdir):
 		if d.find('/')==-1:
 			first = d.find('-')
 			second = d.rfind('-')
-			dates[i] = datetime.date(int(d[0:first]),int(d[first+1:second]),int(d[second+1:]))
+			# Check for missing month/day/year values in the file
+			try:
+				year = int(d[0:first])
+			except ValueError:
+				year = 1900
+			try:
+				month = int(d[first+1:second])
+			except ValueError:
+				month = 1
+			try:
+				day = int(d[second+1:])
+			except ValueError:
+				day = 1
+			if(first == -1 and second == -1):
+				day = 1
+				month = 1
+				
+			dates[i] = datetime.date(year,month,day)
 			i = i+1		
 		else:		
 			first = d.find('/')
@@ -114,9 +143,15 @@ def plot(dates,samples,units,samType,graphdir):
 	rule = rrulewrapper(YEARLY)
 	loc = RRuleLocator(rule)
 	formatter = DateFormatter('%Y')
-
+	#sample_range = (float(max(float(i) for i in samples)) - float(min(float(i) for i in samples)))
+	#sample_range = sample_range/25
+	
 	fig, ax = plt.subplots()
 
+	#if (sample_range != 0):
+	#	minorLocator = MultipleLocator(sample_range)
+	#	ax.yaxis.set_minor_locator(minorLocator)
+	
 	plt.plot_date(dates, samples)
 	ax.xaxis.set_major_locator(loc)
 	ax.xaxis.set_major_formatter(formatter)
@@ -133,8 +168,10 @@ def main():
 	fileName = '*'
 	fileName = raw_input("Enter the file name '*' for all (without extension ie \"test\" not \"test.csv\"): ")
 	print 'Please wait...'
+	currentFile = ''
 	for f in glob.glob(fileName + ".csv"):
 		print 'Processing: ' + f
+		currentFile = f
 		resultList = get_sam_types(f)
 		sampleTypes = showSamples(f,resultList)
 		csvdirName = f + ' csv'
@@ -156,17 +193,19 @@ def main():
 					sampleUnits = get_units(p)
 					sampleT	= get_type(p)
 					print '	Sample Type: ' + sampleT
-					if sampleT != 'Turbidity severity':
+					if sampleT != 'Turbidity severity' and len(sampleData) > 10:
 						plot(sampleDates,sampleData,sampleUnits,sampleT,graphdirName)
 						
-#logging.basicConfig(level=logging.DEBUG, filename='error.log')
+logging.basicConfig(level=logging.DEBUG, filename='error.log')
 
 try:
 	main()		
 except:
 	logging.exception("")
-
-
+	
+logging.shutdown()
+if os.stat('error.log')[6]==0:
+	os.remove('error.log')
 	
 #make the plots using plot_date()
 
