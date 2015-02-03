@@ -57,44 +57,6 @@ def read_file(file, fN):
 				f.close() # Closes f
 	return # This tells python that this function is complete and can continue running the rest of the script. Basically it sends it back.
 
-def get_location_rows(file):
-	""" Returns list of all locations """
-	# No longer needed
-	locations = []
-	with open(file, 'rb') as f:
-		reader = csv.reader(f,delimiter=",",quotechar = "\"")
-		for row in reader:
-			if row[21] not in locations and row[21] != 'MonitoringLocationIdentifier':
-				locations.append(row[21])
-	f.close()
-	return locations
-	
-def create_csv_list(location,file):
-	""" Creates csv of location """
-	# No longer needed
-	file_name = str(location)
-	finalrows = []
-	with open(file, 'rb') as f:
-		reader = csv.reader(f,delimiter=",",quotechar = "\"")
-		for row in reader:
-			i = 0
-			if (row[21] == file_name or row[21] == "MonitoringLocationIdentifier"):
-				finalrows.append(row)
-				i = 1
-			elif i ==1:
-				f.close()
-				return finalrows
-	f.close()
-	return finalrows
-
-def write_csv(rows, location,fN):
-	# No longer needed
-	file_name = str(location)
-	print "Writing " + file_name + ".csv"
-	with open(fN+"/"+file_name +'.csv','wb') as f:
-		writer = csv.writer(f)
-		writer.writerows(rows)
-	f.close()
 # The end of defining functions.
 	
 # This is where the scripting starts.
@@ -107,10 +69,5 @@ for f in glob.glob(fileName + ".csv"): # This is a for loop that checks each fil
 		os.makedirs(fileName) # Makes a new directory if it doesn't.
 	print "Processing: " + f # This outputs the filename so we know what the script is doing.  It's not neccessary but it is helpful.
 	read_file(f, fileName) # this calls the read_file() function we defined on line 20 (or somewhere around there) to do the things to the csv file.
-
-#   No longer Needed.
-#	loc = get_location_rows(f)
-#	for l in loc:
-#		loc_spec_list = create_csv_list(l,f)
-#		write_csv(loc_spec_list, l, fileName)
+	
 	
