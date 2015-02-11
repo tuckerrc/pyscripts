@@ -22,8 +22,8 @@ def stationReader(fN):
 	f.close()	  	
 	return spans
 def htmlWriter(array):
-	start = "<html><head><style>html,body{height:100%;width: 100%;margin: 0px;}div{display:inline-block;padding:30px;width:300px;margin:10px;border:2px solid black; overflow:hidden;} h1{margin:0px;font-size:18px;} .Stream,.River.Stream{border-color: blue;} .Spring{border-color:green;}.Well{border-color:brown;} .Ditch{border-color:aqua;} .Lake.Reservoir{border-color:orange;} .Lake{border-color:darkblue;}.Atmosphere{border-color:skyblue;}</style></head><body>"
-	end = "</body></html>"
+	start = "<html><head><style>html,body{height:100%;width: 100%;margin: 0px;}div{display:inline-block;padding:30px;width:300px;margin:10px;border:2px solid black; overflow:hidden;} h1{margin:0px;font-size:18px;} .Stream,.River.Stream{border-color: blue;} .Spring{border-color:green;}.Well{border-color:brown;} .Ditch{border-color:aqua;} .Lake.Reservoir{border-color:orange;} .Lake{border-color:darkblue;}.Atmosphere{border-color:skyblue;} .key{position: fixed;bottom: 0px;right: 0px;padding: 0px; color:white; width: 125px; border:none; opacity: 0.9;} .key div{padding: 5px; margin: 1px; width: 100px; background:gray; color:white;}</style></head><body>"
+	end = "<div class='key'><div class='Stream'>Stream/River</div><div class='Spring'>Spring</div><div class='Lake'>Lake</div><div class='Well'>Well</div><div class='Ditch'>Ditch</div><div class='Lake Reservoir'>Lake Reservoir</div><div class='Atmosphere'>Atmosphere</div></div></body></html>"
 	string = ""
 	for i in array:
 		string = string + i
