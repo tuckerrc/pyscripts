@@ -16,7 +16,12 @@ def stationReader(fN):
 				sp = sp+"<strong>Location Name: </strong> "+row[3]+"<br/>"
 				sp = sp+"<strong>Type: </strong>"+row[4]+"<br>"
 				sp = sp+"<strong>Latitude: </strong>"+row[11]+"<br/><strong> Longitude: </strong>"+row[12]+"<br/>"
-				sp = sp+"<strong>Description: </strong><br/>"+row[5]+"</div>"	
+				if row[4] == "Well":
+					sp = sp+"<strong>Well Depth Measure: </strong>" + row[31] + " " +row[32]+ "<br>"
+					sp = sp+"<strong>Well Hole Depth Measure: </strong>" + row[33] + " " +row[34]+ "<br>"
+					sp = sp+"<strong>Aquifer Type: </strong>" + row[29] + "<br>"
+				sp = sp+"<strong>Description: </strong><br/>"+row[5]+"</div>"
+				
 				spans.append(sp)
 			i = i+1
 	f.close()	  	
